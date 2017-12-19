@@ -30,3 +30,9 @@ and request the sitemap's URLs via selenium with chromium in headless state.
 
 Important: Make sure that `Content-Security-Policy-Report-Only` defines an
 endpoint, that will reach your freshly defined ELK stack.
+
+## To Do
+
+- Write logs for every application
+- Monitor the application state
+- Provide unit tests for the crawler
