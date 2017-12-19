@@ -1,0 +1,1 @@
+curl -v -XPOST 'http://127.0.0.1:8080/twitter/tweet/1' -d '{"csp-report":{"blocked-uri":"self","document-uri":"https://test-ssl.zeit.de/index","line-number":1,"original-policy":"default-src https:; report-uri https://test-ssl.zeit.de/csp-report","referrer":"","source-file":"https://test-ssl.zeit.de/index","violated-directive":"default-src https:"}}'
