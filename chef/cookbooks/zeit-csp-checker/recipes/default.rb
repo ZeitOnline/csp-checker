@@ -7,11 +7,19 @@ apt_repository "docker" do
 end
 
 package "docker-ce" do
-    version "17.03.2~ce-0~ubuntu-xenial"
+    version "17.09.1~ce-0~ubuntu"
 end
+
+package "python-pip"
+
+execute "pip install docker-compose"
 
 git '/srv/csp-checker' do
   repository 'https://github.com/ZeitOnline/csp-checker.git'
-  revision 'master'
+  revision 'production'
   action :sync
+end
+
+execute "docker-compose up -d" do
+    cwd "/srv/csp-checker"
 end
