@@ -40,9 +40,5 @@ services:
     ports: ['127.0.0.1:8080:8080']
     networks: ['stack']
     depends_on: ['elasticsearch']
-  crawler:
-    build: crawler
-    networks: ['stack']
-
 
 networks: {stack: {}}
