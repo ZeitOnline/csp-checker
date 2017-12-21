@@ -43,7 +43,7 @@ if __name__ == "__main__":
     for article_url in get_article_urls(sitemaps):
         article_url = article_url.replace(
             'http://www.zeit.de',
-            'https://zeit:z96zg@test-ssl.zeit.de')
+            'https://test-ssl.zeit.de')
         article = browse_article(article_url)
         print(article_url)
         print("------------------------")

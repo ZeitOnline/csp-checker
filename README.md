@@ -23,10 +23,10 @@ to process our content systematicallly.
 
 ## How to use
 
-You need to build the docker image for the sitemap crawler with 
-`docker-compose build` and call `docker-compose up` afterwards.
-The crawler will start it's work, process the sitemap
-and request the sitemap's URLs via selenium with chromium in headless state.
+Execute `docker-compose up` to start the ELK stack.
+If you want to run the crawler execute `docker build . -t crawler` in the
+crawler directory and run with `docker run crawler`. It will process the
+sitemap and request the sitemap's URLs via selenium with chromium in headless state.
 
 Important: Make sure that `Content-Security-Policy-Report-Only` defines an
 endpoint, that will reach your freshly defined ELK stack.
