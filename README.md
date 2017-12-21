@@ -12,7 +12,7 @@ client. The client might block or upgrade content according to the policy.
 
 In addition the client browser can send all policy violations to an HTTP header
 indicated enpoint
-(`Content-Security-Policy-Report-Only "default-src https:; report-uri /csp-report") .
+( `Content-Security-Policy-Report-Only "default-src https:; report-uri /csp-report") .
 It will compose JSON data structures, which are send via
 POST to this endpoint for each security violation.
 
@@ -46,6 +46,12 @@ server {
     add_header Content-Security-Policy-Report-Only "default-src https: ; report-uri /csp-report";
 }
 ```
+
+## How to deploy with chef
+
+The `chef` directory contains the `zeit-csp-checker` cookbook, which will
+install docker and docker compose on the node.
+
 
 ## To Do
 
