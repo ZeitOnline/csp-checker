@@ -28,8 +28,24 @@ If you want to run the crawler execute `docker build . -t crawler` in the
 crawler directory and run with `docker run crawler`. It will process the
 sitemap and request the sitemap's URLs via selenium with chromium in headless state.
 
-Important: Make sure that `Content-Security-Policy-Report-Only` defines an
-endpoint, that will reach your freshly defined ELK stack.
+Make sure that the `Content-Security-Policy-Report-Only` of the crawled 
+website defines an endpoint, that will reach your freshly defined ELK stack
+(see below for example config).
+
+### Example config for NGINX
+
+```
+# Report CSP violations to the logstash http server
+upstream logstash {
+    server csp-checker.zeit.de:8080;
+}
+
+server {
+    # config of your webserver goes here
+    add_header Content-Security-Policy "upgrade-insecure-requests;";
+    add_header Content-Security-Policy-Report-Only "default-src https: ; report-uri /csp-report";
+}
+```
 
 ## To Do
 
