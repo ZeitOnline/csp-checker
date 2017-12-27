@@ -5,3 +5,4 @@ crawler/lib/
 crawler/pip-selfcheck.json
 crawler/pyvenv.cfg
 crawler/selenium/
+crawler/log/
