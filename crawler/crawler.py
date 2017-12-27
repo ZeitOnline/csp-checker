@@ -3,6 +3,7 @@ import lxml.etree
 import selenium.webdriver
 import os
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import WebDriverException
 import logging
 import argparse
 
@@ -37,21 +38,47 @@ def browser():
 
 
 def browse_article(article_url):
-    return BROWSER.get(article_url)
+    global BROWSER
+    try:
+        return BROWSER.get(article_url)
+    except WebDriverException:
+        try:
+            log.warn("Needed to reinstatiate browser")
+            BROWSER = browser()
+            return BROWSER.get(article_url)
+        except Exception:
+            log.warn("Could not browse {}", article_url)
+
+
+def crawl_sitemap(sitemap, orig_uri, replace_uri, ignore_pattern):
+    req = requests.get(sitemap)
+    xml = lxml.etree.fromstring(req.content)
+    sitemaps = [elem[0].text.strip() for elem in xml]
+
+    log.info("Start crawling URLS from: {}".format(sitemap))
+    for url in get_article_urls(sitemaps):
+        process_url(url, orig_uri, replace_uri, ignore_pattern)
+
+
+def crawl_file(path, orig_uri, replace_uri, ignore_pattern):
+    with open(path) as f:
+        for line in f.readlines():
+            url = line.strip("\\n")
+            process_url(url, orig_uri, replace_uri, ignore_pattern)
+
+
+def process_url(url, orig_uri, replace_uri, ignore_pattern):
+        url = url.replace(orig_uri, replace_uri)
+        if any(x in url for x in ignore_pattern):
+            return
+        browse_article(url)
+        log.info(url)
 
 
 BROWSER = browser()
 
-if __name__ == "__main__":
-    logging.basicConfig(
-        filename='log/crawler.log',
-        level=logging.INFO,
-        format='%(asctime)s %(levelname)s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
-    req = requests.get(SITEMAP_URL)
-    xml = lxml.etree.fromstring(req.content)
-    sitemaps = [elem[0].text.strip() for elem in xml]
 
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=('Get all URLs in a sitemap and process them '
                      'with a headless browser.'))
@@ -80,14 +107,35 @@ if __name__ == "__main__":
         default=IGNORE_PATTERN,
         help='One or more patterns in URIs, which are not to browse')
 
+    parser.add_argument(
+        '--log-file',
+        dest='log_file',
+        default='crawler.log',
+        help='Where to store the logfile for a crawl.')
+
+    parser.add_argument(
+        '--log-format',
+        dest='log_format',
+        default='%(asctime)s %(levelname)s %(message)s',
+        help='Format of the log entries.')
+
+    parser.add_argument(
+        '--mode',
+        dest='mode',
+        default='sitemap',
+        help='Crawl sitemap or list of URLs (pass location)')
+
     args = parser.parse_args()
 
-    log.info("Start crawling URLS from: {}".format(SITEMAP_URL))
-    for article_url in get_article_urls(sitemaps):
-        article_url = article_url.replace(
-            args.orig_uri,
-            args.replace_uri)
-        if any(x in article_url for x in args.ignore_pattern):
-            continue
-        article = browse_article(article_url)
-        log.info(article_url)
+    logging.basicConfig(
+        filename=args.log_file,
+        level=logging.INFO,
+        format=args.log_format,
+        datefmt='%Y-%m-%d %H:%M:%S')
+
+    if args.mode == 'sitemap':
+        crawl_sitemap(args.sitemap, args.orig_uri, args.replace_uri,
+                      args.ignore_pattern)
+    else:
+        crawl_file(args.mode, args.orig_uri, args.replace_uri,
+                   args.ignore_pattern)
