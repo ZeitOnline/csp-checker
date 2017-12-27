@@ -1,0 +1,7 @@
+crawler/.Python
+crawler/bin/
+crawler/crawler.log
+crawler/lib/
+crawler/pip-selfcheck.json
+crawler/pyvenv.cfg
+crawler/selenium/
