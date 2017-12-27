@@ -43,7 +43,11 @@ def browse_article(article_url):
 BROWSER = browser()
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='crawler.log', level=logging.INFO)
+    logging.basicConfig(
+        filename='log/crawler.log',
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
     req = requests.get(SITEMAP_URL)
     xml = lxml.etree.fromstring(req.content)
     sitemaps = [elem[0].text.strip() for elem in xml]
@@ -78,7 +82,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    log.info("Start crawling URLS from: %s".format(SITEMAP_URL))
+    log.info("Start crawling URLS from: {}".format(SITEMAP_URL))
     for article_url in get_article_urls(sitemaps):
         article_url = article_url.replace(
             args.orig_uri,

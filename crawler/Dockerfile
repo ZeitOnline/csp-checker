@@ -6,5 +6,3 @@ RUN apt-get update && apt-get install -y \
 ADD crawler_requirements.txt /
 ADD crawler.py /
 RUN pip3 install -r /crawler_requirements.txt
-CMD [ "python3", "/crawler.py"]
-
