@@ -12,7 +12,7 @@ client. The client might block or upgrade content according to the policy.
 
 In addition the client browser can send all policy violations to an HTTP header
 indicated enpoint
-(`Content-Security-Policy-Report-Only "default-src https:; report-uri /csp-report") .
+( `Content-Security-Policy-Report-Only "default-src https:; report-uri /csp-report") .
 It will compose JSON data structures, which are send via
 POST to this endpoint for each security violation.
 
@@ -23,13 +23,35 @@ to process our content systematicallly.
 
 ## How to use
 
-You need to build the docker image for the sitemap crawler with 
-`docker-compose build` and call `docker-compose up` afterwards.
-The crawler will start it's work, process the sitemap
-and request the sitemap's URLs via selenium with chromium in headless state.
+Execute `docker-compose up` to start the ELK stack.
+If you want to run the crawler execute `docker build . -t crawler` in the
+crawler directory and run with `docker run crawler`. It will process the
+sitemap and request the sitemap's URLs via selenium with chromium in headless state.
 
-Important: Make sure that `Content-Security-Policy-Report-Only` defines an
-endpoint, that will reach your freshly defined ELK stack.
+Make sure that the `Content-Security-Policy-Report-Only` of the crawled 
+website defines an endpoint, that will reach your freshly defined ELK stack
+(see below for example config).
+
+### Example config for NGINX
+
+```
+# Report CSP violations to the logstash http server
+upstream logstash {
+    server csp-checker.zeit.de:8080;
+}
+
+server {
+    # config of your webserver goes here
+    add_header Content-Security-Policy "upgrade-insecure-requests;";
+    add_header Content-Security-Policy-Report-Only "default-src https: ; report-uri /csp-report";
+}
+```
+
+## How to deploy with chef
+
+The `chef` directory contains the `zeit-csp-checker` cookbook, which will
+install docker and docker compose on the node.
+
 
 ## To Do
 
