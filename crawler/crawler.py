@@ -50,21 +50,37 @@ def browse_article(url):
             log.warn("Could not browse {}", url)
 
 
-def crawl_sitemap(sitemap, orig_uri, replace_uri, ignore_pattern):
+def crawl_sitemap(sitemap, orig_uri, replace_uri,
+                  ignore_pattern, continue_with, stop_at):
     req = requests.get(sitemap)
     xml = lxml.etree.fromstring(req.content)
     sitemaps = [elem[0].text.strip() for elem in xml]
 
     log.info("Start crawling URLS from: {}".format(sitemap))
     for url in get_urls(sitemaps):
-        process_url(url, orig_uri, replace_uri, ignore_pattern)
+        if url == stop_at:
+            log.info("Stop processing at {}".format(url))
+            return
+        if continue_with is None or continue_with == url:
+            process_url(url, orig_uri, replace_uri, ignore_pattern)
+            continue_with = None
+        else:
+            log.info("Skip {}".format(url))
 
 
-def crawl_file(path, orig_uri, replace_uri, ignore_pattern):
+def crawl_file(path, orig_uri, replace_uri, ignore_pattern, continue_with,
+               stop_at):
     with open(path) as f:
         for line in f.readlines():
             url = line.strip("\\n")
-            process_url(url, orig_uri, replace_uri, ignore_pattern)
+            if url == stop_at:
+                log.info("Stop processing at {}".format(url))
+                return
+            if continue_with is None or continue_with == url:
+                process_url(url, orig_uri, replace_uri, ignore_pattern)
+                continue_with = None
+            else:
+                log.info("Skip {}".format(url))
 
 
 def process_url(url, orig_uri, replace_uri, ignore_pattern):
@@ -123,7 +139,19 @@ if __name__ == "__main__":
         '--mode',
         dest='mode',
         default='sitemap',
-        help='Crawl sitemap or list of URLs (pass location)')
+        help='Crawl sitemap or list of URLs (pass location).')
+
+    parser.add_argument(
+        '--continue-with',
+        dest='continue_with',
+        default=None,
+        help='Skip urls in sitemap or list before this url.')
+
+    parser.add_argument(
+        '--stop-at',
+        dest='stop_at',
+        default=None,
+        help='Process urls until your reach this url in sitemap or list.')
 
     args = parser.parse_args()
 
@@ -133,9 +161,8 @@ if __name__ == "__main__":
         format=args.log_format,
         datefmt='%Y-%m-%d %H:%M:%S')
 
-    if args.mode == 'sitemap':
-        crawl_sitemap(args.sitemap, args.orig_uri, args.replace_uri,
-                      args.ignore_pattern)
-    else:
-        crawl_file(args.mode, args.orig_uri, args.replace_uri,
-                   args.ignore_pattern)
+    crawl = crawl_sitemap
+    if not args.mode == 'sitemap':
+        crawl = crawl_file
+    crawl(args.sitemap, args.orig_uri, args.replace_uri,
+          args.ignore_pattern, args.continue_with, args.stop_at)
