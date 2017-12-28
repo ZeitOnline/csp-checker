@@ -16,7 +16,7 @@ REPLACE_URL = ('http://www.zeit.de', 'https://test-ssl.zeit.de')
 IGNORE_PATTERN = []
 
 
-def get_article_urls(sitemaps):
+def get_urls(sitemaps):
     for sitemap_url in sitemaps:
         sitemap = get_sitemap(sitemap_url)
         for url in sitemap:
@@ -37,17 +37,17 @@ def browser():
     return selenium.webdriver.Chrome(**parameters)
 
 
-def browse_article(article_url):
+def browse_article(url):
     global BROWSER
     try:
-        return BROWSER.get(article_url)
+        return BROWSER.get(url)
     except WebDriverException:
         try:
             log.warn("Needed to reinstatiate browser")
             BROWSER = browser()
-            return BROWSER.get(article_url)
+            return BROWSER.get(url)
         except Exception:
-            log.warn("Could not browse {}", article_url)
+            log.warn("Could not browse {}", url)
 
 
 def crawl_sitemap(sitemap, orig_uri, replace_uri, ignore_pattern):
@@ -56,7 +56,7 @@ def crawl_sitemap(sitemap, orig_uri, replace_uri, ignore_pattern):
     sitemaps = [elem[0].text.strip() for elem in xml]
 
     log.info("Start crawling URLS from: {}".format(sitemap))
-    for url in get_article_urls(sitemaps):
+    for url in get_urls(sitemaps):
         process_url(url, orig_uri, replace_uri, ignore_pattern)
 
 
