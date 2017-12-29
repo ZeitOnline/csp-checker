@@ -34,8 +34,6 @@ def browser():
         desired_capabilities=DesiredCapabilities.CHROME)
 
 
-
-
 def browse_article(url):
     global BROWSER
     try:
