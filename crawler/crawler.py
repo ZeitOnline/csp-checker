@@ -1,19 +1,20 @@
 import requests
 import lxml.etree
-import selenium.webdriver
-import os
-from selenium.webdriver.chrome.options import Options
+from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import logging
+import os
 import argparse
 
 
 log = logging.getLogger('csp_crawler')
 
 NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
-SITEMAP_URL = 'http://www.zeit.de/gsitemaps/index.xml'
+SITEMAP_URL = os.environ.get('SITEMAP_URL', None)
 REPLACE_URL = ('http://www.zeit.de', 'https://test-ssl.zeit.de')
 IGNORE_PATTERN = []
+REMOTE_SELENIUM = os.environ.get('REMOTE_SELENIUM', 'http://127.0.0.1:4444')
 
 
 def get_urls(sitemaps):
@@ -28,13 +29,9 @@ def get_sitemap(sitemap_url):
 
 
 def browser():
-    opts = Options()
-    opts.add_argument('headless')
-    opts.add_argument('disable-gpu')
-    opts.add_argument('window-size=1200x800')
-    opts.binary_location = os.environ.get('ZEIT_WEB_CHROMIUM_BINARY')
-    parameters = {'chrome_options': opts}
-    return selenium.webdriver.Chrome(**parameters)
+    return webdriver.Remote(
+        command_executor='{}/wd/hub'.format(REMOTE_SELENIUM),
+        desired_capabilities=DesiredCapabilities.CHROME)
 
 
 def browse_article(url):
@@ -91,13 +88,15 @@ def process_url(url, orig_uri, replace_uri, ignore_pattern):
         log.info(url)
 
 
-BROWSER = browser()
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=('Get all URLs in a sitemap and process them '
-                     'with a headless browser.'))
+        description=(
+            'Get all URLs in a sitemap and process them'
+            ' with a headless browser.\n\n'
+            'Environment variables set to:\n'
+            'SITEMAP_URL: {}\n'
+            'REMOTE_SELENIUM: {}'.format(SITEMAP_URL, REMOTE_SELENIUM)),
+        formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument(
         '--sitemap',
@@ -161,6 +160,8 @@ if __name__ == "__main__":
         format=args.log_format,
         datefmt='%Y-%m-%d %H:%M:%S')
 
+    global BROWSER
+    BROWSER = browser()
     crawl = crawl_sitemap
     if not args.mode == 'sitemap':
         crawl = crawl_file
