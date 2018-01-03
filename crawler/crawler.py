@@ -17,8 +17,13 @@ IGNORE_PATTERN = []
 REMOTE_SELENIUM = os.environ.get('REMOTE_SELENIUM', 'http://127.0.0.1:4444')
 
 
-def get_urls(sitemaps):
+def get_urls(sitemaps, continue_with=None):
     for sitemap_url in sitemaps:
+        if continue_with is not None and sitemap_url != continue_with:
+            log.info("Skip sitemap: {}".format(sitemap_url))
+            continue
+        continue_with = None
+        log.info("Process sitemap: {}".format(sitemap_url))
         sitemap = get_sitemap(sitemap_url)
         for url in sitemap:
             yield url.find('{%s}loc' % NS).text
@@ -53,8 +58,13 @@ def crawl_sitemap(sitemap, orig_uri, replace_uri,
     xml = lxml.etree.fromstring(req.content)
     sitemaps = [elem[0].text.strip() for elem in xml]
 
+    continue_with_sitemap = None
+    if continue_with in sitemaps:
+        continue_with_sitemap = continue_with
+        continue_with = None
+
     log.info("Start crawling URLS from: {}".format(sitemap))
-    for url in get_urls(sitemaps):
+    for url in get_urls(sitemaps, continue_with_sitemap):
         if url == stop_at:
             log.info("Stop processing at {}".format(url))
             return
@@ -144,8 +154,9 @@ if __name__ == "__main__":
         '--continue-with',
         dest='continue_with',
         default=None,
-        help='Skip urls in sitemap or list before this url.')
-
+        help='Skip urls in sitemap or list before this url. '
+             'You may also pass a sitemap URL. All URLs before '
+             'will be skipped.')
     parser.add_argument(
         '--stop-at',
         dest='stop_at',
