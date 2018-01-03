@@ -7,3 +7,4 @@ crawler/pyvenv.cfg
 crawler/selenium/
 crawler/__pycache__
 crawler/log/
+crawler/share
